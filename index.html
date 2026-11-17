@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0d1110" />
+    <meta
+      name="description"
+      content="Install EPV, create a local vault, and connect your organization when it is configured."
+    />
+    <title>Enterprise Personal Vault — Help</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/EPV-Help/assets/site.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to guide content</a>
+    <header class="site-header">
+      <a class="wordmark" href="/EPV-Help/" aria-label="EPV Help home"
+        ><span class="wordmark-mark">EPV</span><span>HELP CENTER</span></a
+      >
+      <nav class="primary-nav" aria-label="Main navigation">
+        <a href="/EPV-Help/" aria-current="page">Home</a>
+        <a href="/EPV-Help/user-guide/">User Guide</a>
+        <a href="/EPV-Help/setup-guide/">Setup Guide</a>
+        <a href="/EPV-Help/extension-download/">Extension Download</a>
+      </nav>
+    </header>
+
+    <main id="main" class="home-layout">
+      <section class="home-hero" aria-labelledby="home-title">
+        <h1 id="home-title">Your vault starts with you.</h1>
+        <p class="lead">
+          Create a local encrypted vault, then connect it to your organization when its identity
+          provider is configured.
+        </p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="/EPV-Help/extension-download/"
+            >Install the extension <span aria-hidden="true">↗</span></a
+          >
+          <a class="text-link" href="/EPV-Help/user-guide/"
+            >Read the user guide <span aria-hidden="true">→</span></a
+          >
+        </div>
+        <div class="trust-note">
+          <span class="status-dot" aria-hidden="true"></span>
+          <p>
+            Local vault creation does not require an organization login. Sync and administration do.
+          </p>
+        </div>
+      </section>
+
+      <section class="start-section" aria-labelledby="start-title">
+        <div class="section-heading">
+          <p class="eyebrow">CHOOSE A PATH</p>
+          <h2 id="start-title">What are you here to do?</h2>
+        </div>
+        <div class="guide-list">
+          <a class="guide-row" href="/EPV-Help/user-guide/">
+            <span class="row-index">01</span>
+            <span class="row-copy"
+              ><strong>Use your vault</strong
+              ><small>Create a vault, add a login, and lock it safely.</small></span
+            >
+            <span class="row-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="guide-row" href="/EPV-Help/setup-guide/">
+            <span class="row-index">02</span>
+            <span class="row-copy"
+              ><strong>Set up EPV</strong
+              ><small>Run the Docker stack and configure organization sign-in.</small></span
+            >
+            <span class="row-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="guide-row" href="/EPV-Help/extension-download/">
+            <span class="row-index">03</span>
+            <span class="row-copy"
+              ><strong>Get the browser extension</strong
+              ><small>Download a release or build it from source for local use.</small></span
+            >
+            <span class="row-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="flow-section" aria-labelledby="flow-title">
+        <div class="flow-intro">
+          <p class="eyebrow">FIRST RUN</p>
+          <h2 id="flow-title">From install to first login</h2>
+          <p>
+            For local use, start in the extension. Your vault passphrase unlocks your encrypted
+            records; it is separate from any organization account.
+          </p>
+        </div>
+        <ol class="flow-steps">
+          <li>
+            <span>01</span>
+            <div>
+              <strong>Load EPV in your browser</strong>
+              <p>Use the unpacked build for development or a signed release archive.</p>
+            </div>
+          </li>
+          <li>
+            <span>02</span>
+            <div>
+              <strong>Create your local vault</strong>
+              <p>Choose a passphrase you can keep safe. No default login is supplied.</p>
+            </div>
+          </li>
+          <li>
+            <span>03</span>
+            <div>
+              <strong>Save a login entry</strong>
+              <p>Add its name, username, password, and optional website in the side panel.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <aside class="callout" aria-label="Organization sign-in note">
+        <div>
+          <h2>Need team sync or the admin console?</h2>
+          <p>
+            An administrator must configure an OIDC identity provider, build settings, and your
+            organization membership first.
+          </p>
+        </div>
+        <a class="button button-secondary" href="/EPV-Help/setup-guide/#organization-sign-in"
+          >See setup requirements</a
+        >
+      </aside>
+    </main>
+
+    <footer class="site-footer">
+      <a class="footer-brand" href="/EPV-Help/">EPV / HELP</a>
+      <p>Documentation for the current local development build.</p>
+      <a href="https://github.com/KasunRocz-Softwares/EPV">Source repository ↗</a>
+    </footer>
+  </body>
+</html>

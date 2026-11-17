@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0d1110" />
+    <meta
+      name="description"
+      content="Run EPV locally with Docker Compose and configure organization sign-in."
+    />
+    <title>Setup Guide — EPV Help</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/EPV-Help/assets/site.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to guide content</a>
+    <header class="site-header">
+      <a class="wordmark" href="/EPV-Help/" aria-label="EPV Help home"
+        ><span class="wordmark-mark">EPV</span><span>HELP CENTER</span></a
+      >
+      <nav class="primary-nav" aria-label="Main navigation">
+        <a href="/EPV-Help/">Home</a>
+        <a href="/EPV-Help/user-guide/">User Guide</a>
+        <a href="/EPV-Help/setup-guide/" aria-current="page">Setup Guide</a>
+        <a href="/EPV-Help/extension-download/">Extension Download</a>
+      </nav>
+    </header>
+
+    <main id="main" class="document-layout">
+      <aside class="page-index" aria-label="On this page">
+        <p class="eyebrow">SETUP GUIDE</p>
+        <nav>
+          <a href="#prerequisites">Prerequisites</a><a href="#docker">Start the Docker stack</a
+          ><a href="#services">Local services</a><a href="#extension">Build the extension</a
+          ><a href="#organization-sign-in">Organization sign-in</a
+          ><a href="#owner">Provision the first owner</a
+          ><a href="#troubleshooting">Troubleshooting</a><a href="#ghcr">Use GHCR images</a>
+        </nav>
+      </aside>
+
+      <article class="guide-document">
+        <header class="document-header">
+          <h1>Setup Guide</h1>
+          <p class="lead">
+            Run the API, admin console, worker, database, cache, and encrypted-file store locally.
+            Organization login needs an identity provider.
+          </p>
+          <p class="updated-note">
+            This guide covers the local Docker Compose environment. It is not a production
+            deployment recipe.
+          </p>
+        </header>
+
+        <section id="prerequisites" class="doc-section">
+          <h2>Prerequisites</h2>
+          <ul class="check-list">
+            <li>Docker Desktop with Docker Compose v2</li>
+            <li>Node.js 24 and pnpm 11.25.0 for extension builds and owner provisioning</li>
+            <li>The EPV repository checked out locally</li>
+          </ul>
+        </section>
+
+        <section id="docker" class="doc-section">
+          <h2>Start the Docker stack</h2>
+          <p>From the repository root, start the services:</p>
+          <div class="code-block">
+            <div class="code-head"><span>PowerShell / terminal</span><span>LOCAL</span></div>
+            <pre><code>docker compose up -d</code></pre>
+          </div>
+          <p>
+            Compose starts PostgreSQL, Redis, RustFS, the API, the admin console, the policy worker,
+            and this help site. Migrations and object-store initialization run as one-shot services.
+          </p>
+          <div class="notice notice-caution">
+            <strong>Keep local services local</strong>
+            <p>
+              The development credentials and single-host RustFS volume are for local use. Do not
+              expose this stack to the public internet or use it for production secrets.
+            </p>
+          </div>
+        </section>
+
+        <section id="services" class="doc-section">
+          <h2>Open local services</h2>
+          <dl class="service-list">
+            <div>
+              <dt>Help center</dt>
+              <dd><a href="http://localhost:8090">http://localhost:8090</a></dd>
+            </div>
+            <div>
+              <dt>Organization console</dt>
+              <dd><a href="http://localhost:8080">http://localhost:8080</a></dd>
+            </div>
+            <div>
+              <dt>API readiness</dt>
+              <dd>
+                <a href="http://localhost:3000/health/ready">http://localhost:3000/health/ready</a>
+              </dd>
+            </div>
+            <div>
+              <dt>Invitation email preview</dt>
+              <dd><a href="http://localhost:18025">http://localhost:18025</a> (Mailpit profile)</dd>
+            </div>
+          </dl>
+          <p>
+            The admin console can display its locked state before OIDC is configured. That is
+            expected; there is no default organization username or password.
+          </p>
+        </section>
+
+        <section id="extension" class="doc-section">
+          <h2>Build the extension</h2>
+          <p>Install workspace dependencies, then build the Chromium extension:</p>
+          <div class="code-block">
+            <div class="code-head"><span>Repository root</span><span>LOCAL</span></div>
+            <pre><code>pnpm install --frozen-lockfile
+pnpm --filter @epv/extension build</code></pre>
+          </div>
+          <p>
+            Load <code>apps/extension/.output/chrome-mv3</code> from
+            <code>brave://extensions</code> or <code>chrome://extensions</code> using Developer mode
+            and <strong>Load unpacked</strong>. See the
+            <a href="/EPV-Help/extension-download/">Extension Download Guide</a>.
+          </p>
+        </section>
+
+        <section id="organization-sign-in" class="doc-section">
+          <h2>Configure organization sign-in</h2>
+          <p>
+            EPV uses OIDC Authorization Code with PKCE. Register a public client for the admin
+            console and a separate public client for the extension. Do not create or embed a client
+            secret in either app.
+          </p>
+          <ol class="step-list">
+            <li>
+              Set the API's <code>OIDC_ISSUER</code> and <code>OIDC_AUDIENCE</code> in
+              <code>.env</code>.
+            </li>
+            <li>
+              Set <code>VITE_OIDC_ISSUER</code>, <code>VITE_OIDC_AUDIENCE</code>, and
+              <code>VITE_ADMIN_OIDC_CLIENT_ID</code> for the admin console build. Set
+              <code>VITE_OIDC_CLIENT_ID</code>, the same issuer/audience, and
+              <code>VITE_API_BASE_URL</code> before building the extension.
+            </li>
+            <li>
+              Allow the exact local console callback <code>http://localhost:8080/</code> at the
+              identity provider. For the extension, allow the redirect from
+              <code>chrome.identity.getRedirectURL()</code>.
+            </li>
+            <li>
+              Set <code>CORS_ALLOWED_ORIGINS</code> for the console and installed
+              <code>chrome-extension://&lt;extension-id&gt;</code> origin.
+            </li>
+            <li>Rebuild the admin image and extension after changing their Vite build settings.</li>
+          </ol>
+          <div class="notice">
+            <strong>OIDC values are public client settings</strong>
+            <p>
+              Issuer, audience, and client IDs are identifiers. Never place an IdP client secret,
+              signing private key, or database password in a Vite variable.
+            </p>
+          </div>
+        </section>
+
+        <section id="owner" class="doc-section">
+          <h2>Provision the first owner</h2>
+          <p>
+            After the IdP is configured, sign in once and use the verified identity provider subject
+            (<code>sub</code>) for the first owner membership:
+          </p>
+          <div class="code-block">
+            <div class="code-head"><span>Repository root</span><span>ADMIN TASK</span></div>
+            <pre><code>pnpm --filter @epv/api provision:member -- \
+  --issuer &lt;issuer-url&gt; \
+  --subject &lt;oidc-subject&gt; \
+  --organization &lt;organization-name&gt; \
+  --role owner</code></pre>
+          </div>
+          <p>
+            This command uses the administrative migration database connection. The API itself uses
+            a restricted application database role. Do not share the admin database password.
+          </p>
+        </section>
+
+        <section id="troubleshooting" class="doc-section">
+          <h2>Troubleshooting</h2>
+          <details>
+            <summary>“Sign in with your organization” is disabled</summary>
+            <p>
+              The admin web image was built without its public OIDC settings. Configure
+              <code>VITE_OIDC_ISSUER</code>, <code>VITE_ADMIN_OIDC_CLIENT_ID</code>, and
+              <code>VITE_OIDC_AUDIENCE</code>, then rebuild <code>admin-web</code>.
+            </p>
+          </details>
+          <details>
+            <summary>The extension can create a vault but cannot connect</summary>
+            <p>
+              Local vault operation does not need OIDC. For sync, verify API issuer/audience
+              settings, extension Vite settings, exact redirect URI, CORS origin, and owner
+              membership.
+            </p>
+          </details>
+          <details>
+            <summary>The API readiness check fails</summary>
+            <p>
+              Run <code>docker compose ps</code> and confirm PostgreSQL and Redis are healthy. Then
+              inspect service logs with <code>docker compose logs api postgres redis</code>.
+            </p>
+          </details>
+          <details>
+            <summary>Encrypted file upload fails locally</summary>
+            <p>
+              Confirm RustFS is healthy and the one-shot bucket initialization service completed.
+              The API uses the internal <code>rustfs:9000</code> endpoint.
+            </p>
+          </details>
+        </section>
+
+        <section id="ghcr" class="doc-section">
+          <h2>Use the GHCR Compose images</h2>
+          <p>
+            The published deployment is a Compose bundle of separate app images and infrastructure
+            containers. Log in to GHCR first if the packages are private, then choose the same image
+            tag for all EPV services:
+          </p>
+          <div class="code-block">
+            <div class="code-head"><span>PowerShell / terminal</span><span>GHCR</span></div>
+            <pre><code>docker compose -f docker-compose.yml -f docker-compose.ghcr.yml pull
+docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d --no-build</code></pre>
+          </div>
+          <p>
+            Set <code>EPV_IMAGE_TAG</code> to the version published by the repository workflow.
+            Review <code>.env.example</code> and the
+            <a href="https://github.com/KasunRocz-Softwares/EPV">deployment documentation</a> before
+            using a non-local host.
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a class="footer-brand" href="/EPV-Help/">EPV / HELP</a>
+      <p>Documentation for the current local development build.</p>
+      <a href="https://github.com/KasunRocz-Softwares/EPV">Source repository ↗</a>
+    </footer>
+  </body>
+</html>
