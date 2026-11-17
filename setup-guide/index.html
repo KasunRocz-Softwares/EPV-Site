@@ -9,7 +9,7 @@
     <title>Setup Guide | Enterprise Personal Vault</title>
     <meta
       name="description"
-      content="Run EPV locally with Docker Compose and configure organization sign-in."
+      content="Run the EPV server from published Docker images with one compose file, then connect sign-in and the extension."
     />
     <link rel="icon" href="/EPV-Site/assets/img/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -62,14 +62,15 @@
           <p class="eyebrow">For administrators</p>
           <h1>Setup Guide</h1>
           <p class="lead">
-            Run the API, admin console, worker, database, cache and encrypted-file store locally.
-            Organization login needs an identity provider.
+            Run the EPV server from published images. You need Docker and one compose file; nothing
+            to build.
           </p>
           <p class="doc-meta">
             <svg class="icon" aria-hidden="true">
               <use href="/EPV-Site/assets/img/icons.svg#i-terminal-window"></use>
             </svg>
-            Covers the local Docker Compose environment. It is not a production deployment recipe.
+            A single-host setup for evaluation and pilots. It is not a production-qualified
+            deployment.
           </p>
         </div>
       </header>
@@ -78,55 +79,340 @@
         <aside class="page-index" aria-label="On this page">
           <p class="page-index-title">On this page</p>
           <nav>
-            <a href="#prerequisites">Prerequisites</a>
+            <a href="#prerequisites">What you need</a>
             <a href="#docker">Start the Docker stack</a>
-            <a href="#services">Local services</a>
-            <a href="#extension">Build the extension</a>
-            <a href="#organization-sign-in">Organization sign-in</a>
-            <a href="#owner">Provision the first owner</a>
+            <a href="#services">Open the services</a>
+            <a href="#organization-sign-in">Connect sign-in</a>
+            <a href="#policy-key">Sign policies</a>
+            <a href="#owner">Add the first owner</a>
+            <a href="#extension">Connect the extension</a>
+            <a href="#update">Update and back up</a>
             <a href="#troubleshooting">Troubleshooting</a>
-            <a href="#ghcr">Use GHCR images</a>
           </nav>
         </aside>
 
         <article class="guide-document">
           <section id="prerequisites" class="doc-section">
-            <h2>Prerequisites</h2>
+            <h2>What you need</h2>
             <ul class="check-list">
-              <li>Docker Desktop with Docker Compose v2</li>
-              <li>Node.js 24 and pnpm 11.25.0 for extension builds and owner provisioning</li>
-              <li>The EPV repository checked out locally</li>
+              <li>Docker Engine or Docker Desktop with Docker Compose v2</li>
+              <li>About 2 GB of free disk space for the images</li>
+              <li>
+                For organization accounts: an OIDC identity provider such as Keycloak, Entra ID or
+                Okta
+              </li>
             </ul>
           </section>
 
           <section id="docker" class="doc-section">
             <h2>Start the Docker stack</h2>
-            <p>From the repository root, start the services:</p>
-            <div class="code-block">
-              <div class="code-head"><span>Terminal</span></div>
-              <pre><code>docker compose up -d</code></pre>
-            </div>
+            <ol class="step-list">
+              <li>
+                Make an empty folder and download the two files:
+                <div class="download-row">
+                  <a class="button button-primary button-small" href="https://github.com/KasunRocz-Softwares/EPV-Site/releases/latest/download/compose.yml"
+                    >compose.yml</a
+                  >
+                  <a class="button button-ghost button-small" href="https://github.com/KasunRocz-Softwares/EPV-Site/releases/latest/download/env.example"
+                    >env.example</a
+                  >
+                </div>
+              </li>
+              <li>
+                Save <code>env.example</code> as <code>.env</code> in the same folder. Or download
+                both from a terminal:
+                <div class="code-block">
+                  <div class="code-head"><span>Terminal</span></div>
+                  <pre><code>mkdir epv &amp;&amp; cd epv
+curl -fsSLo compose.yml https://github.com/KasunRocz-Softwares/EPV-Site/releases/latest/download/compose.yml
+curl -fsSLo .env https://github.com/KasunRocz-Softwares/EPV-Site/releases/latest/download/env.example</code></pre>
+                </div>
+              </li>
+              <li>
+                Open <code>.env</code> and give each required password a unique random value.
+                Generate one with <code>openssl rand -hex 24</code>.
+              </li>
+              <li>
+                Pull the images and start EPV:
+                <div class="code-block">
+                  <div class="code-head"><span>Terminal</span></div>
+                  <pre><code>docker compose pull
+docker compose up -d
+docker compose ps</code></pre>
+                </div>
+              </li>
+            </ol>
             <p>
-              Compose starts PostgreSQL, Redis, RustFS, the API, the admin console, the policy
-              worker, and this site. Migrations and object-store initialization run as one-shot
-              services.
+              The first start creates the database and the encrypted-file bucket, then starts the
+              API, the policy worker and the organization console.
             </p>
+            <details>
+              <summary>View compose.yml</summary>
+              <div class="code-block code-block-tall">
+                <div class="code-head"><span>compose.yml</span></div>
+                <pre><code># Enterprise Personal Vault: single-host stack from published images.
+#
+# 1. Put this file and the .env template (renamed to .env) in an empty folder.
+# 2. Fill in every value marked REQUIRED in .env.
+# 3. docker compose pull &amp;&amp; docker compose up -d
+#
+# This is a single-host setup for evaluation and pilots. It is not a production-qualified or
+# highly available deployment; see https://kasunrocz-softwares.github.io/EPV-Site/#status.
+# PostgreSQL, Redis and the object store are only reachable inside the Compose network.
+
+x-epv-image: &amp;epv-api-image ghcr.io/kasunrocz-softwares/epv-api:${EPV_IMAGE_TAG:-latest}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: epv
+      POSTGRES_USER: epv
+      POSTGRES_PASSWORD: ${EPV_DB_ADMIN_PASSWORD:?Set EPV_DB_ADMIN_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U epv -d epv']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rustfs:
+    image: rustfs/rustfs:1.0.3-glibc
+    restart: unless-stopped
+    environment:
+      RUSTFS_VOLUMES: /data/rustfs{0..3}
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ENABLE: 'false'
+      RUSTFS_ACCESS_KEY: ${EPV_OBJECT_STORAGE_USER:?Set EPV_OBJECT_STORAGE_USER in .env}
+      RUSTFS_SECRET_KEY: ${EPV_OBJECT_STORAGE_PASSWORD:?Set EPV_OBJECT_STORAGE_PASSWORD in .env}
+      # Single-volume layout; see the RustFS documentation before using multiple disks.
+      RUSTFS_UNSAFE_BYPASS_DISK_CHECK: 'true'
+      RUSTFS_OBS_LOGGER_LEVEL: error
+    ports:
+      # Browsers upload and download encrypted files here through short-lived signed URLs.
+      - '${EPV_FILES_PORT:-9000}:9000'
+    volumes:
+      - object_storage_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:9000/health &gt;/dev/null']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    image: *epv-api-image
+    restart: 'no'
+    command: ['node', 'apps/api/dist/database/migrate.js']
+    environment:
+      NODE_ENV: production
+      MIGRATION_DATABASE_URL: postgresql://epv:${EPV_DB_ADMIN_PASSWORD}@postgres:5432/epv
+      EPV_APP_DB_PASSWORD: ${EPV_APP_DB_PASSWORD:?Set EPV_APP_DB_PASSWORD in .env}
+      EPV_MIGRATOR_DB_PASSWORD: ${EPV_MIGRATOR_DB_PASSWORD:?Set EPV_MIGRATOR_DB_PASSWORD in .env}
+      EPV_WORKER_DB_PASSWORD: ${EPV_WORKER_DB_PASSWORD:?Set EPV_WORKER_DB_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  files-init:
+    image: *epv-api-image
+    restart: 'no'
+    command: ['node', 'apps/api/dist/files/ensure-bucket.js']
+    environment:
+      S3_ENDPOINT: http://rustfs:9000
+      S3_REGION: us-east-1
+      S3_BUCKET: epv-encrypted-files
+      S3_ACCESS_KEY: ${EPV_OBJECT_STORAGE_USER}
+      S3_SECRET_KEY: ${EPV_OBJECT_STORAGE_PASSWORD}
+      FILE_STORAGE_CORS_ORIGINS: ${EPV_CONSOLE_URL:-http://localhost:8080},chrome-extension://caijjlabajponibphckpeingakefhfpo
+    depends_on:
+      rustfs:
+        condition: service_healthy
+
+  api:
+    image: *epv-api-image
+    restart: unless-stopped
+    environment:
+      # Development mode allows local policy signing; production mode requires AWS KMS.
+      NODE_ENV: development
+      PORT: 3000
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://epv_app:${EPV_APP_DB_PASSWORD}@postgres:5432/epv
+      REDIS_URL: redis://redis:6379
+      # Invitation email: set SMTP_HOST, SMTP_FROM and INVITE_CONSOLE_URL together, or none of them.
+      ADMIN_CONSOLE_URL: ${INVITE_CONSOLE_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:-}
+      OIDC_PASSWORD_AMR: ${OIDC_PASSWORD_AMR:-pwd}
+      OIDC_TOTP_AMR: ${OIDC_TOTP_AMR:-otp}
+      OIDC_WEBAUTHN_AMR: ${OIDC_WEBAUTHN_AMR:-}
+      OIDC_WEBAUTHN_ACR: ${OIDC_WEBAUTHN_ACR:-}
+      POLICY_SIGNING_MODE: local
+      POLICY_SIGNING_KEY_ID: ${POLICY_SIGNING_KEY_ID:-}
+      POLICY_SIGNING_PRIVATE_KEY_B64URL: ${POLICY_SIGNING_PRIVATE_KEY_B64URL:-}
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-}
+      # The console and the published extension (its ID is fixed for every installation).
+      CORS_ALLOWED_ORIGINS: ${EPV_CONSOLE_URL:-http://localhost:8080},chrome-extension://caijjlabajponibphckpeingakefhfpo
+      S3_ENDPOINT: http://rustfs:9000
+      S3_PUBLIC_ENDPOINT: ${EPV_FILES_URL:-http://localhost:9000}
+      S3_REGION: us-east-1
+      S3_BUCKET: epv-encrypted-files
+      S3_ACCESS_KEY: ${EPV_OBJECT_STORAGE_USER}
+      S3_SECRET_KEY: ${EPV_OBJECT_STORAGE_PASSWORD}
+    ports:
+      - '${EPV_API_PORT:-3000}:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      files-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/health/ready').then(r =&gt; process.exit(r.ok ? 0 : 1)).catch(() =&gt; process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  policy-propagation:
+    image: *epv-api-image
+    restart: unless-stopped
+    command: ['node', 'workers/policy-propagation/dist/index.js']
+    environment:
+      NODE_ENV: production
+      WORKER_DATABASE_URL: postgresql://epv_worker:${EPV_WORKER_DB_PASSWORD}@postgres:5432/epv
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  admin-web:
+    image: ghcr.io/kasunrocz-softwares/epv-admin-web:${EPV_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    # Written to /config.json when the container starts; no rebuild needed.
+    environment:
+      EPV_API_BASE_URL: ${EPV_API_URL:-http://localhost:3000}
+      EPV_OIDC_ISSUER: ${OIDC_ISSUER:-}
+      EPV_ADMIN_OIDC_CLIENT_ID: ${ADMIN_OIDC_CLIENT_ID:-}
+      EPV_OIDC_AUDIENCE: ${OIDC_AUDIENCE:-}
+    ports:
+      - '${EPV_CONSOLE_PORT:-8080}:80'
+
+  # Optional local copy of the EPV site and guides: docker compose --profile docs up -d
+  site:
+    image: ghcr.io/kasunrocz-softwares/epv-help:${EPV_IMAGE_TAG:-latest}
+    profiles: ['docs']
+    restart: unless-stopped
+    ports:
+      - '${EPV_SITE_PORT:-8090}:80'
+
+volumes:
+  postgres_data:
+  redis_data:
+  object_storage_data:</code></pre>
+              </div>
+            </details>
+            <details>
+              <summary>View the .env template</summary>
+              <div class="code-block code-block-tall">
+                <div class="code-head"><span>.env</span></div>
+                <pre><code># Enterprise Personal Vault settings. Save this file as .env next to compose.yml.
+# Generate each password with:  openssl rand -hex 24
+# Never commit the filled-in .env or share it.
+
+# Image version to run. Pin a release tag (for example v0.1.0) for repeatable installs.
+EPV_IMAGE_TAG=latest
+
+# ---- REQUIRED: unique random passwords --------------------------------------------------
+EPV_DB_ADMIN_PASSWORD=
+EPV_APP_DB_PASSWORD=
+EPV_MIGRATOR_DB_PASSWORD=
+EPV_WORKER_DB_PASSWORD=
+EPV_OBJECT_STORAGE_USER=epv_files
+EPV_OBJECT_STORAGE_PASSWORD=
+
+# ---- Addresses people's browsers use -------------------------------------------------------
+# Use HTTPS addresses behind a reverse proxy for anything beyond a single test machine.
+EPV_API_URL=http://localhost:3000
+EPV_CONSOLE_URL=http://localhost:8080
+EPV_FILES_URL=http://localhost:9000
+
+# Host ports (change if they are already in use).
+EPV_API_PORT=3000
+EPV_CONSOLE_PORT=8080
+EPV_FILES_PORT=9000
+EPV_SITE_PORT=8090
+
+# ---- Organization sign-in (OIDC) ------------------------------------------------------------
+# Leave empty to run without organization accounts. Register two public clients (no secret):
+# one for the console (redirect http://localhost:8080/ or your console URL) and one for the
+# extension (redirect https://caijjlabajponibphckpeingakefhfpo.chromiumapp.org/).
+OIDC_ISSUER=
+OIDC_AUDIENCE=
+ADMIN_OIDC_CLIENT_ID=
+
+# ---- Policy signing (optional) ---------------------------------------------------------------
+# Generate a key pair with the command in the setup guide. Give the public key to users for the
+# extension settings page; keep the private key only here.
+POLICY_SIGNING_KEY_ID=
+POLICY_SIGNING_PRIVATE_KEY_B64URL=
+
+# ---- Invitation email (optional) ---------------------------------------------------------------
+# Leave every value empty to disable email. To enable it, set SMTP_HOST, SMTP_FROM and
+# INVITE_CONSOLE_URL (the console address used in invitation links); for example port 587.
+INVITE_CONSOLE_URL=
+SMTP_HOST=
+SMTP_PORT=
+SMTP_FROM=
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_SECURE=</code></pre>
+              </div>
+            </details>
             <div class="notice notice-caution">
-              <strong>Keep local services local</strong>
+              <strong>Use HTTPS beyond a single test machine</strong>
               <p>
-                The development credentials and single-host RustFS volume are for local use. Do not
-                expose this stack to the public internet or use it for production secrets.
+                Put a reverse proxy with TLS in front of the API, console and file ports, then set
+                <code>EPV_API_URL</code>, <code>EPV_CONSOLE_URL</code> and
+                <code>EPV_FILES_URL</code> to the HTTPS addresses. The database, cache and object
+                store are never exposed outside the Compose network.
               </p>
             </div>
           </section>
 
           <section id="services" class="doc-section">
-            <h2>Open local services</h2>
+            <h2>Open the services</h2>
             <dl class="service-list">
-              <div>
-                <dt>This site</dt>
-                <dd><a href="http://localhost:8090">http://localhost:8090</a></dd>
-              </div>
               <div>
                 <dt>Organization console</dt>
                 <dd><a href="http://localhost:8080">http://localhost:8080</a></dd>
@@ -138,143 +424,177 @@
                 </dd>
               </div>
               <div>
-                <dt>Invitation email preview</dt>
-                <dd>
-                  <a href="http://localhost:18025">http://localhost:18025</a> (Mailpit profile)
-                </dd>
+                <dt>Encrypted files</dt>
+                <dd>http://localhost:9000 (used by browsers through signed links)</dd>
+              </div>
+              <div>
+                <dt>This site, offline (optional)</dt>
+                <dd><code>docker compose --profile docs up -d</code>, then port 8090</dd>
               </div>
             </dl>
             <p>
-              The admin console can display its locked state before OIDC is configured. That is
-              expected; there is no default organization username or password.
-            </p>
-          </section>
-
-          <section id="extension" class="doc-section">
-            <h2>Build the extension</h2>
-            <p>Install workspace dependencies, then build the Chromium extension:</p>
-            <div class="code-block">
-              <div class="code-head"><span>Repository root</span></div>
-              <pre><code>pnpm install --frozen-lockfile
-pnpm --filter @epv/extension build</code></pre>
-            </div>
-            <p>
-              Load <code>apps/extension/.output/chrome-mv3</code> from
-              <code>brave://extensions</code> or <code>chrome://extensions</code> using Developer
-              mode and <strong>Load unpacked</strong>. See the
-              <a href="/EPV-Site/extension-download/">Extension Download guide</a>.
+              The console shows a locked state until sign-in is configured. That is expected; there
+              is no default username or password.
             </p>
           </section>
 
           <section id="organization-sign-in" class="doc-section">
-            <h2>Configure organization sign-in</h2>
+            <h2>Connect your identity provider</h2>
             <p>
-              EPV uses OIDC Authorization Code with PKCE. Register a public client for the admin
-              console and a separate public client for the extension. Do not create or embed a
-              client secret in either app.
+              EPV uses OIDC Authorization Code with PKCE. In your identity provider, register two
+              public clients with no client secret:
             </p>
-            <ol class="step-list">
-              <li>
-                Set the API's <code>OIDC_ISSUER</code> and <code>OIDC_AUDIENCE</code> in
-                <code>.env</code>.
-              </li>
-              <li>
-                Set <code>VITE_OIDC_ISSUER</code>, <code>VITE_OIDC_AUDIENCE</code>, and
-                <code>VITE_ADMIN_OIDC_CLIENT_ID</code> for the admin console build. Set
-                <code>VITE_OIDC_CLIENT_ID</code>, the same issuer/audience, and
-                <code>VITE_API_BASE_URL</code> before building the extension.
-              </li>
-              <li>
-                Allow the exact local console callback <code>http://localhost:8080/</code> at the
-                identity provider. For the extension, allow the redirect from
-                <code>chrome.identity.getRedirectURL()</code>.
-              </li>
-              <li>
-                Set <code>CORS_ALLOWED_ORIGINS</code> for the console and installed
-                <code>chrome-extension://&lt;extension-id&gt;</code> origin.
-              </li>
-              <li>Rebuild the admin image and extension after changing their Vite build settings.</li>
-            </ol>
+            <dl class="service-list">
+              <div>
+                <dt>Console client redirect</dt>
+                <dd><code>http://localhost:8080/</code> or your <code>EPV_CONSOLE_URL</code></dd>
+              </div>
+              <div>
+                <dt>Extension client redirect</dt>
+                <dd><code>https://caijjlabajponibphckpeingakefhfpo.chromiumapp.org/</code></dd>
+              </div>
+            </dl>
+            <p>
+              Then set <code>OIDC_ISSUER</code>, <code>OIDC_AUDIENCE</code> and
+              <code>ADMIN_OIDC_CLIENT_ID</code> in <code>.env</code> and apply them. No rebuild is
+              needed; the console reads its settings when the container starts.
+            </p>
+            <div class="code-block">
+              <div class="code-head"><span>Terminal</span></div>
+              <pre><code>docker compose up -d</code></pre>
+            </div>
             <div class="notice">
-              <strong>OIDC values are public client settings</strong>
+              <strong>These are public client settings</strong>
               <p>
-                Issuer, audience, and client IDs are identifiers. Never place an IdP client secret,
-                signing private key, or database password in a Vite variable.
+                Issuer, audience and client IDs are identifiers. Never put an identity provider
+                client secret into EPV's settings.
               </p>
             </div>
           </section>
 
-          <section id="owner" class="doc-section">
-            <h2>Provision the first owner</h2>
+          <section id="policy-key" class="doc-section">
+            <h2>Sign organization policies</h2>
             <p>
-              After the IdP is configured, sign in once and use the verified identity provider
-              subject (<code>sub</code>) for the first owner membership:
+              Policies are signed so the extension can tell they came from you. Generate a key pair
+              with the API image:
             </p>
             <div class="code-block">
-              <div class="code-head"><span>Repository root</span></div>
-              <pre><code>pnpm --filter @epv/api provision:member -- \
+              <div class="code-head"><span>Terminal</span></div>
+              <pre><code>docker compose run --rm --no-deps api node -e "const c=require('crypto');const k=c.generateKeyPairSync('ed25519');console.log('POLICY_SIGNING_KEY_ID=policy-1');console.log('POLICY_SIGNING_PRIVATE_KEY_B64URL='+k.privateKey.export({type:'pkcs8',format:'der'}).toString('base64url'));console.log('Policy public key for the extension: '+k.publicKey.export({type:'spki',format:'der'}).subarray(12).toString('base64url'))"</code></pre>
+            </div>
+            <p>
+              Copy the two <code>POLICY_SIGNING_</code> lines into <code>.env</code> and run
+              <code>docker compose up -d</code>. Share the key ID and the public key with your
+              users for the extension settings. Keep the private key only in <code>.env</code>.
+            </p>
+          </section>
+
+          <section id="owner" class="doc-section">
+            <h2>Add the first owner</h2>
+            <p>
+              Sign in to your identity provider once, find your subject (<code>sub</code>), then
+              create the organization with you as its owner:
+            </p>
+            <div class="code-block">
+              <div class="code-head"><span>Terminal</span></div>
+              <pre><code>docker compose run --rm migrate node apps/api/dist/database/provision-member.js \
   --issuer &lt;issuer-url&gt; \
   --subject &lt;oidc-subject&gt; \
-  --organization &lt;organization-name&gt; \
+  --organization-name "&lt;organization name&gt;" \
   --role owner</code></pre>
             </div>
             <p>
-              This command uses the administrative migration database connection. The API itself
-              uses a restricted application database role. Do not share the admin database password.
+              This uses the administrative database connection inside the Compose network. The API
+              itself runs with a restricted database role.
+            </p>
+          </section>
+
+          <section id="extension" class="doc-section">
+            <h2>Connect the extension</h2>
+            <p>
+              Users install the extension from the
+              <a href="/EPV-Site/extension-download/">download page</a>, open its Settings page, and enter:
+            </p>
+            <dl class="service-list">
+              <div>
+                <dt>API address</dt>
+                <dd>Your <code>EPV_API_URL</code></dd>
+              </div>
+              <div>
+                <dt>Issuer, client ID, audience</dt>
+                <dd>The extension client from your identity provider</dd>
+              </div>
+              <div>
+                <dt>Policy key ID and public key</dt>
+                <dd>From the key you generated above</dd>
+              </div>
+            </dl>
+            <p>
+              To set this for everyone and lock it, push the same values through Chrome enterprise
+              policy for extension <code>caijjlabajponibphckpeingakefhfpo</code>. The
+              <a href="/EPV-Site/extension-download/#connect">download page</a> has an example.
+            </p>
+          </section>
+
+          <section id="update" class="doc-section">
+            <h2>Update and back up</h2>
+            <p>
+              To update, set <code>EPV_IMAGE_TAG</code> in <code>.env</code> to a newer release tag,
+              then pull and restart:
+            </p>
+            <div class="code-block">
+              <div class="code-head"><span>Terminal</span></div>
+              <pre><code>docker compose pull
+docker compose up -d</code></pre>
+            </div>
+            <p>
+              Data lives in the <code>postgres_data</code>, <code>redis_data</code> and
+              <code>object_storage_data</code> volumes. Back them up before updating.
+              <code>docker compose down</code> keeps them; adding <code>-v</code> deletes them
+              permanently.
             </p>
           </section>
 
           <section id="troubleshooting" class="doc-section">
             <h2>Troubleshooting</h2>
             <details>
+              <summary>Compose says a variable is required</summary>
+              <p>
+                A required password in <code>.env</code> is still empty. Fill it in and run
+                <code>docker compose up -d</code> again.
+              </p>
+            </details>
+            <details>
               <summary>“Sign in with your organization” is disabled</summary>
               <p>
-                The admin web image was built without its public OIDC settings. Configure
-                <code>VITE_OIDC_ISSUER</code>, <code>VITE_ADMIN_OIDC_CLIENT_ID</code>, and
-                <code>VITE_OIDC_AUDIENCE</code>, then rebuild <code>admin-web</code>.
+                Set <code>OIDC_ISSUER</code>, <code>OIDC_AUDIENCE</code> and
+                <code>ADMIN_OIDC_CLIENT_ID</code> in <code>.env</code>, then run
+                <code>docker compose up -d</code>.
+              </p>
+            </details>
+            <details>
+              <summary>The API keeps restarting</summary>
+              <p>
+                Run <code>docker compose logs api</code>. Email settings must be all set or all
+                empty: <code>SMTP_HOST</code>, <code>SMTP_FROM</code> and
+                <code>INVITE_CONSOLE_URL</code> go together.
               </p>
             </details>
             <details>
               <summary>The extension can create a vault but cannot connect</summary>
               <p>
-                Local vault operation does not need OIDC. For sync, verify API issuer/audience
-                settings, extension Vite settings, exact redirect URI, CORS origin, and owner
-                membership.
+                Local vaults do not need a server. For sync, check the API address and identity
+                provider values on the extension's Settings page, and that the extension client
+                allows the redirect shown there.
               </p>
             </details>
             <details>
-              <summary>The API readiness check fails</summary>
+              <summary>Encrypted file upload fails</summary>
               <p>
-                Run <code>docker compose ps</code> and confirm PostgreSQL and Redis are healthy.
-                Then inspect service logs with <code>docker compose logs api postgres redis</code>.
+                Browsers must reach <code>EPV_FILES_URL</code>. Check that the file port is open and
+                that <code>docker compose ps</code> shows the object store as healthy.
               </p>
             </details>
-            <details>
-              <summary>Encrypted file upload fails locally</summary>
-              <p>
-                Confirm RustFS is healthy and the one-shot bucket initialization service completed.
-                The API uses the internal <code>rustfs:9000</code> endpoint.
-              </p>
-            </details>
-          </section>
-
-          <section id="ghcr" class="doc-section">
-            <h2>Use the GHCR Compose images</h2>
-            <p>
-              The published deployment is a Compose bundle of separate app images and
-              infrastructure containers. Log in to GHCR first if the packages are private, then
-              choose the same image tag for all EPV services:
-            </p>
-            <div class="code-block">
-              <div class="code-head"><span>Terminal</span></div>
-              <pre><code>docker compose -f docker-compose.yml -f docker-compose.ghcr.yml pull
-docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d --no-build</code></pre>
-            </div>
-            <p>
-              Set <code>EPV_IMAGE_TAG</code> to the version published by the repository workflow.
-              Review <code>.env.example</code> and <code>docs/production-deployment.md</code> in the
-              repository before using a non-local host.
-            </p>
           </section>
 
           <nav class="doc-next" aria-label="Related guides">

@@ -1531,3 +1531,38 @@ details p {
     flex: 1 1 auto;
   }
 }
+
+/* ---------- Downloads ---------- */
+
+.download-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.step-list .code-block {
+  margin-top: 12px;
+}
+
+.code-block-tall pre {
+  max-height: 420px;
+  overflow: auto;
+}
+
+details .code-block {
+  margin: 0 18px 18px;
+}
+
+.download-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 12px;
+}
+
+.download-card p {
+  color: var(--quiet);
+  font-size: 14px;
+}

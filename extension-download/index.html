@@ -9,7 +9,7 @@
     <title>Extension Download | Enterprise Personal Vault</title>
     <meta
       name="description"
-      content="Build the EPV browser extension from source or load a signed release in Chrome, Edge or Brave."
+      content="Download the EPV browser extension and load it in Chrome, Edge or Brave. No build step needed."
     />
     <link rel="icon" href="/EPV-Site/assets/img/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -65,15 +65,20 @@
           <p class="eyebrow">Chrome, Edge and Brave</p>
           <h1>Extension Download</h1>
           <p class="lead">
-            Build the extension from source and load it unpacked. Signed release archives are
-            supported once a version is published.
+            Download the extension, load it in your browser, and create a vault. No build step and
+            no account needed.
           </p>
-          <p class="doc-meta">
-            <svg class="icon" aria-hidden="true">
-              <use href="/EPV-Site/assets/img/icons.svg#i-puzzle-piece"></use>
-            </svg>
-            No default sign-in is included. Organization login requires OIDC configuration.
-          </p>
+          <div class="download-card">
+            <a class="button button-primary" href="https://github.com/KasunRocz-Softwares/EPV-Site/releases/download/v0.1.0/epv-0.1.0-extension-chrome.zip"
+              >Download EPV 0.1.0
+              <svg class="icon" aria-hidden="true">
+                <use href="/EPV-Site/assets/img/icons.svg#i-arrow-right"></use></svg
+            ></a>
+            <p>
+              ZIP, 295 KB.
+              <a href="https://github.com/KasunRocz-Softwares/EPV-Site/releases">All releases</a>
+            </p>
+          </div>
         </div>
       </header>
 
@@ -81,90 +86,122 @@
         <aside class="page-index" aria-label="On this page">
           <p class="page-index-title">On this page</p>
           <nav>
-            <a href="#local-build">Build from source</a>
             <a href="#load">Load in your browser</a>
-            <a href="#release">Use a signed release</a>
-            <a href="#verify">Verify a release</a>
-            <a href="#sign-in">Organization sign-in</a>
+            <a href="#connect">Connect your organization</a>
+            <a href="#verify">Verify the download</a>
+            <a href="#update">Update to a new version</a>
           </nav>
         </aside>
 
         <article class="guide-document">
-          <section id="local-build" class="doc-section">
-            <h2>Build from source</h2>
-            <p>From the EPV repository root, run:</p>
-            <div class="code-block">
-              <div class="code-head"><span>Repository root</span></div>
-              <pre><code>pnpm install --frozen-lockfile
-pnpm --filter @epv/extension build</code></pre>
-            </div>
-            <p>
-              The unpacked extension is generated at <code>apps/extension/.output/chrome-mv3</code>.
-              For organization sync, set the public extension OIDC/API configuration before
-              building; local vault creation does not require those settings.
-            </p>
-          </section>
-
           <section id="load" class="doc-section">
             <h2>Load the extension in Brave or Chrome</h2>
             <ol class="step-list">
-              <li>Open <code>brave://extensions</code> or <code>chrome://extensions</code>.</li>
-              <li>Turn on <strong>Developer mode</strong>.</li>
-              <li>Select <strong>Load unpacked</strong>.</li>
               <li>
-                Select the local build folder <code>apps/extension/.output/chrome-mv3</code>, or an
-                extracted release directory containing <code>manifest.json</code>.
+                Extract the ZIP to a folder you will keep, for example
+                <code>Documents\EPV</code>. The browser loads the extension from this folder.
               </li>
-              <li>Open the EPV side panel, create a local vault, and add a test login.</li>
+              <li>
+                Open <code>chrome://extensions</code>, <code>brave://extensions</code> or
+                <code>edge://extensions</code>.
+              </li>
+              <li>Turn on <strong>Developer mode</strong>.</li>
+              <li>
+                Select <strong>Load unpacked</strong> and choose the folder that contains
+                <code>manifest.json</code>.
+              </li>
+              <li>
+                Pin EPV in the toolbar, open the side panel, create a local vault and add a test
+                login.
+              </li>
             </ol>
-            <p>
-              In Edge, open <code>edge://extensions</code> and follow the same Load unpacked steps.
-              Browser names and menu labels can change between releases.
-            </p>
-          </section>
-
-          <section id="release" class="doc-section">
-            <h2>Use a signed release</h2>
-            <div class="notice notice-caution">
-              <strong>No public release has been published yet</strong>
+            <div class="notice">
+              <strong>The extension ID is the same on every install</strong>
               <p>
-                Until one is, use the build steps above. This page does not imply that a production
-                release is available.
+                <code>caijjlabajponibphckpeingakefhfpo</code>. Your administrator uses it to allow
+                the extension on the server and the identity provider.
               </p>
             </div>
+          </section>
+
+          <section id="connect" class="doc-section">
+            <h2>Connect your organization</h2>
             <p>
-              When a version is published to the project's GitHub Releases, download its
-              <code>epv-&lt;version&gt;-extension-chrome.zip</code> asset and extract it to a stable
-              folder before loading it as shown above.
+              Local vaults work right away. For encrypted sync, right-click the EPV toolbar icon,
+              choose <strong>Options</strong>, and enter the values from your administrator:
+              the API address, identity provider issuer, client ID, audience, and the policy key ID
+              and public key. Choose <strong>Save connection</strong> and allow access when the
+              browser asks.
+            </p>
+            <p>
+              IT teams can set and lock these values for everyone with Chrome enterprise policy.
+              The extension reads them from the <code>connection</code> key of its managed
+              storage:
+            </p>
+            <div class="code-block">
+              <div class="code-head"><span>Chrome policy (JSON)</span></div>
+              <pre><code>{
+  "3rdparty": {
+    "extensions": {
+      "caijjlabajponibphckpeingakefhfpo": {
+        "connection": {
+          "apiBaseUrl": "https://vault.example.com",
+          "oidcIssuer": "https://login.example.com/realms/epv",
+          "oidcClientId": "epv-extension",
+          "oidcAudience": "epv-api",
+          "policyKeyId": "policy-1",
+          "policyPublicKey": "&lt;policy public key&gt;"
+        }
+      }
+    }
+  }
+}</code></pre>
+            </div>
+            <p>
+              Deploy it the way you manage Chrome today (Group Policy, an MDM profile or a policy
+              file), and confirm it on one device first. The Options page then shows
+              <strong>Managed by your organization</strong>.
             </p>
           </section>
 
           <section id="verify" class="doc-section">
-            <h2>Verify a release</h2>
+            <h2>Verify the download</h2>
+            <p>The SHA-256 checksum of <code>epv-0.1.0-extension-chrome.zip</code> is:</p>
+            <div class="code-block">
+              <div class="code-head"><span>SHA-256</span></div>
+              <pre><code>b80e260173dcc864772ff70541500281bd79e9d49597d57bc7daa621a7eb7a00</code></pre>
+            </div>
+            <p>Compare it with the file you downloaded:</p>
+            <div class="code-block">
+              <div class="code-head"><span>PowerShell</span></div>
+              <pre><code>Get-FileHash .\epv-0.1.0-extension-chrome.zip -Algorithm SHA256</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-head"><span>macOS / Linux</span></div>
+              <pre><code>shasum -a 256 epv-0.1.0-extension-chrome.zip</code></pre>
+            </div>
             <p>
-              Download the matching <code>SHA256SUMS</code> and Sigstore bundle attached to the same
-              GitHub release. Compare the ZIP digest and verify the bundle using the official
-              Sigstore instructions before installing the extension.
-            </p>
-            <p>
-              Install only a release whose provenance you trust. Do not load an extension from an
-              unknown archive or third-party mirror.
+              The same value is in the <code>SHA256SUMS</code> file on the release. This build has
+              no Sigstore signature yet. Only install EPV from this page or the EPV-Site releases.
             </p>
           </section>
 
-          <section id="sign-in" class="doc-section">
-            <h2>Organization sign-in</h2>
-            <p>
-              The extension authenticates through your organization's OIDC provider. The provider
-              must register the extension as a public client with Authorization Code + PKCE and
-              allow the exact browser redirect URI. The API issuer/audience, extension build
-              settings, and organization membership must also match.
-            </p>
-            <p>
-              If <strong>Connect organization</strong> is disabled, use the local vault or ask an
-              administrator to complete the
-              <a href="/EPV-Site/setup-guide/#organization-sign-in">organization sign-in setup</a>.
-            </p>
+          <section id="update" class="doc-section">
+            <h2>Update to a new version</h2>
+            <ol class="step-list">
+              <li>Download the new ZIP and extract it over the same folder.</li>
+              <li>
+                On the extensions page, select the reload button on the EPV card. Your vault and
+                settings stay in place.
+              </li>
+            </ol>
+            <div class="notice notice-caution">
+              <strong>Do not remove the extension to update it</strong>
+              <p>
+                Removing EPV deletes the local vault stored in this browser. Keep your recovery code
+                and make sure organization items are synced before removing it.
+              </p>
+            </div>
           </section>
 
           <nav class="doc-next" aria-label="Related guides">
