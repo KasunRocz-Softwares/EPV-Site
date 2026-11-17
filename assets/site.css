@@ -290,7 +290,7 @@ code {
 }
 
 .primary-nav a:not(.button):hover,
-.primary-nav a[aria-current='page'] {
+.primary-nav a:not(.button)[aria-current='page'] {
   color: var(--ink);
 }
 
@@ -536,20 +536,20 @@ code {
   color: var(--muted);
 }
 
+.tile-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .tile-icon {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  margin-bottom: 8px;
-  border-radius: var(--r-control);
-  background: var(--accent-soft);
+  display: inline-flex;
   color: var(--accent-ink);
 }
 
 .tile-icon .icon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 .tile-types {
@@ -607,19 +607,12 @@ code {
   background: var(--accent-soft);
 }
 
-.tile-fill .tile-icon {
-  background: var(--bg-raised);
-}
-
 .tile-breach {
   grid-area: breach;
 }
 
 .tile-recovery {
   grid-area: recovery;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  column-gap: 24px;
   background:
     repeating-linear-gradient(
       135deg,
@@ -627,18 +620,6 @@ code {
       color-mix(in oklab, var(--line) 55%, transparent) 14px 15px
     ),
     var(--bg-raised);
-}
-
-.tile-recovery .tile-icon {
-  grid-row: span 2;
-  width: 56px;
-  height: 56px;
-  margin: 0;
-}
-
-.tile-recovery .tile-icon .icon {
-  width: 26px;
-  height: 26px;
 }
 
 .tile-recovery p {
@@ -1074,10 +1055,9 @@ code {
   display: grid;
   gap: 6px;
   padding: 18px 20px;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--accent-ink);
+  border: 1px solid color-mix(in oklab, var(--accent-ink) 30%, var(--line));
   border-radius: var(--r-control);
-  background: var(--bg-raised);
+  background: var(--accent-soft);
 }
 
 .notice strong {
@@ -1089,7 +1069,7 @@ code {
 }
 
 .notice-caution {
-  border-left-color: var(--caution);
+  border-color: color-mix(in oklab, var(--caution) 35%, var(--line));
   background: var(--caution-soft);
 }
 
@@ -1504,16 +1484,6 @@ details p {
 
   .tile-types {
     padding-bottom: 0;
-  }
-
-  .tile-recovery {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .tile-recovery .tile-icon {
-    grid-row: auto;
-    width: 40px;
-    height: 40px;
   }
 
   .admin-points {
