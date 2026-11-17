@@ -3,170 +3,237 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0d1110" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f3f6f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d1114" media="(prefers-color-scheme: dark)" />
+    <title>User Guide | Enterprise Personal Vault</title>
     <meta
       name="description"
       content="Create and unlock a local EPV vault, add login entries, and understand organization sync."
     />
-    <title>User Guide — EPV Help</title>
+    <link rel="icon" href="/EPV-Help/assets/img/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/EPV-Help/assets/site.css" />
+    <script src="/EPV-Help/assets/site.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to guide content</a>
+
     <header class="site-header">
-      <a class="wordmark" href="/EPV-Help/" aria-label="EPV Help home"
-        ><span class="wordmark-mark">EPV</span><span>HELP CENTER</span></a
-      >
-      <nav class="primary-nav" aria-label="Main navigation">
-        <a href="/EPV-Help/">Home</a>
-        <a href="/EPV-Help/user-guide/" aria-current="page">User Guide</a>
-        <a href="/EPV-Help/setup-guide/">Setup Guide</a>
-        <a href="/EPV-Help/extension-download/">Extension Download</a>
-      </nav>
+      <div class="wrap header-inner">
+        <a class="wordmark" href="/EPV-Help/" aria-label="Enterprise Personal Vault home">
+          <span class="wordmark-mark" aria-hidden="true">EPV</span>
+          <span class="wordmark-text">Enterprise Personal Vault</span>
+        </a>
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="primary-nav"
+          aria-label="Menu"
+        >
+          <svg class="icon icon-open" aria-hidden="true">
+            <use href="/EPV-Help/assets/img/icons.svg#i-list"></use>
+          </svg>
+          <svg class="icon icon-close" aria-hidden="true">
+            <use href="/EPV-Help/assets/img/icons.svg#i-x"></use>
+          </svg>
+        </button>
+        <nav class="primary-nav" id="primary-nav" aria-label="Main navigation">
+          <a href="/EPV-Help/#how">How it works</a>
+          <a href="/EPV-Help/#features">Features</a>
+          <a href="/EPV-Help/user-guide/" aria-current="page">User guide</a>
+          <a href="/EPV-Help/setup-guide/">Setup guide</a>
+          <a class="button button-primary button-small" href="/EPV-Help/extension-download/"
+            >Get the extension</a
+          >
+        </nav>
+      </div>
     </header>
 
-    <main id="main" class="document-layout">
-      <aside class="page-index" aria-label="On this page">
-        <p class="eyebrow">USER GUIDE</p>
-        <nav>
-          <a href="#create-vault">Create a vault</a><a href="#unlock">Unlock and lock</a
-          ><a href="#new-login">Create your first login</a
-          ><a href="#generator">Generate a password</a><a href="#autofill">Use a login on a site</a
-          ><a href="#sync">Connect your organization</a>
-        </nav>
-      </aside>
-
-      <article class="guide-document">
-        <header class="document-header">
+    <main id="main">
+      <header class="doc-hero">
+        <div class="wrap doc-hero-inner">
+          <p class="eyebrow">For everyone using EPV</p>
           <h1>User Guide</h1>
           <p class="lead">
-            Create a local vault, save a login, and know which steps require your organization
+            Create a local vault, save a login, and know which steps need your organization
             administrator.
           </p>
-          <p class="updated-note">
-            Local vault data stays encrypted in the extension. Organization sync is optional and
-            requires OIDC setup.
+          <p class="doc-meta">
+            <svg class="icon" aria-hidden="true">
+              <use href="/EPV-Help/assets/img/icons.svg#i-lock-key"></use>
+            </svg>
+            Local vault data stays encrypted in the extension. Organization sync is optional.
           </p>
-        </header>
+        </div>
+      </header>
 
-        <section id="create-vault" class="doc-section">
-          <h2>Create a vault</h2>
-          <ol class="step-list">
-            <li>Open the EPV extension and choose <strong>Create local vault</strong>.</li>
-            <li>
-              Set a strong vault passphrase and store it somewhere safe. This passphrase unlocks the
-              local vault; it is not your organization password.
-            </li>
-            <li>
-              Keep your recovery code if the extension offers recovery enrollment. EPV cannot
-              recover a user-held recovery code that has been lost.
-            </li>
-          </ol>
-          <div class="notice notice-caution">
-            <strong>No default credentials</strong>
+      <div class="wrap doc-layout">
+        <aside class="page-index" aria-label="On this page">
+          <p class="page-index-title">On this page</p>
+          <nav>
+            <a href="#create-vault">Create a vault</a>
+            <a href="#unlock">Unlock and lock</a>
+            <a href="#new-login">Create your first login</a>
+            <a href="#generator">Generate a password</a>
+            <a href="#autofill">Use a login on a site</a>
+            <a href="#sync">Connect your organization</a>
+          </nav>
+        </aside>
+
+        <article class="guide-document">
+          <section id="create-vault" class="doc-section">
+            <h2>Create a vault</h2>
+            <ol class="step-list">
+              <li>Open the EPV extension and choose <strong>Create local vault</strong>.</li>
+              <li>
+                Set a strong vault passphrase and store it somewhere safe. This passphrase unlocks
+                the local vault; it is not your organization password.
+              </li>
+              <li>
+                Keep your recovery code if the extension offers recovery enrollment. EPV cannot
+                recover a user-held recovery code that has been lost.
+              </li>
+            </ol>
+            <div class="notice notice-caution">
+              <strong>No default credentials</strong>
+              <p>
+                EPV does not ship with a shared username or password. You create the local vault
+                passphrase on first use.
+              </p>
+            </div>
+          </section>
+
+          <section id="unlock" class="doc-section">
+            <h2>Unlock and lock</h2>
             <p>
-              EPV does not ship with a shared username or password. You create the local vault
-              passphrase on first use.
+              Unlock the vault with its passphrase when you need to use saved items. Select
+              <strong>Lock</strong> when you finish. The extension also applies its configured
+              idle-lock behavior; after a browser restart, expect to unlock again.
             </p>
-          </div>
-        </section>
-
-        <section id="unlock" class="doc-section">
-          <h2>Unlock and lock</h2>
-          <p>
-            Unlock the vault with its passphrase when you need to use saved items. Select
-            <strong>Lock</strong> when you finish. The extension also applies its configured
-            idle-lock behavior; after a browser restart, expect to unlock again.
-          </p>
-          <p>
-            Sign-in and vault unlock are separate: signing in to an organization authorizes server
-            access, while unlocking releases the local ability to decrypt your vault.
-          </p>
-        </section>
-
-        <section id="new-login" class="doc-section">
-          <h2>Create your first login</h2>
-          <ol class="step-list">
-            <li>
-              In the extension side panel, choose <strong>+ New item</strong> and select
-              <strong>Login</strong>.
-            </li>
-            <li>
-              Enter a descriptive name, username, password, and the website origin if you want
-              matching suggestions.
-            </li>
-            <li>
-              Use <strong>Generate</strong> to create a password that follows the current effective
-              policy shown by the extension.
-            </li>
-            <li>
-              Choose <strong>Save encrypted item</strong>. The login content is encrypted in the
-              browser before it is stored.
-            </li>
-          </ol>
-          <p>
-            For your first local entry, use a non-production test credential. Do not store
-            organization secrets in an unqualified local development deployment.
-          </p>
-        </section>
-
-        <section id="generator" class="doc-section">
-          <h2>Generate and check a password</h2>
-          <p>
-            The generator uses the extension's effective password requirements. If you run the
-            optional breach check, EPV sends only a short SHA-1 prefix to the Have I Been Pwned
-            Pwned Passwords service; the password and remaining hash stay on your device.
-          </p>
-          <p>
-            Site-specific password rotation is not automatic. If a policy reports an old or
-            non-compliant password, change it at the destination website and update the saved login.
-          </p>
-        </section>
-
-        <section id="autofill" class="doc-section">
-          <h2>Use a login on a website</h2>
-          <p>
-            EPV offers user-initiated suggestions for an exact secure website origin. Confirm the
-            match and choose the login in the extension. The extension does not submit the website
-            form for you.
-          </p>
-          <div class="notice">
-            <strong>Destination websites can read filled values</strong>
             <p>
-              Once a password is entered into a site's form, that site can access it. EPV does not
-              promise confidentiality from the destination website.
+              Sign-in and vault unlock are separate: signing in to an organization authorizes
+              server access, while unlocking releases the local ability to decrypt your vault.
             </p>
-          </div>
-        </section>
+          </section>
 
-        <section id="sync" class="doc-section">
-          <h2>Connect your organization</h2>
-          <p>
-            Organization sync is disabled until an administrator configures the API and extension
-            with the same OIDC issuer and audience, allows the extension origin, and provisions your
-            membership. The extension's <strong>Connect organization</strong> control stays
-            unavailable until it is configured.
-          </p>
-          <p>
-            After sign-in, select your organization and choose <strong>Sync now</strong>. Local
-            vault creation and unlock continue to work without this connection.
-          </p>
-          <a class="inline-link" href="/EPV-Help/setup-guide/#organization-sign-in"
-            >Administrator setup steps →</a
-          >
-        </section>
-      </article>
+          <section id="new-login" class="doc-section">
+            <h2>Create your first login</h2>
+            <ol class="step-list">
+              <li>
+                In the extension side panel, choose <strong>+ New item</strong> and select
+                <strong>Login</strong>.
+              </li>
+              <li>
+                Enter a descriptive name, username, password, and the website origin if you want
+                matching suggestions.
+              </li>
+              <li>
+                Use <strong>Generate</strong> to create a password that follows the current
+                effective policy shown by the extension.
+              </li>
+              <li>
+                Choose <strong>Save encrypted item</strong>. The login content is encrypted in the
+                browser before it is stored.
+              </li>
+            </ol>
+            <p>
+              For your first local entry, use a non-production test credential. Do not store
+              organization secrets in an unqualified local development deployment.
+            </p>
+          </section>
+
+          <section id="generator" class="doc-section">
+            <h2>Generate and check a password</h2>
+            <p>
+              The generator uses the extension's effective password requirements. If you run the
+              optional breach check, EPV sends only a short SHA-1 prefix to the Have I Been Pwned
+              Pwned Passwords service; the password and remaining hash stay on your device.
+            </p>
+            <p>
+              Site-specific password rotation is not automatic. If a policy reports an old or
+              non-compliant password, change it at the destination website and update the saved
+              login.
+            </p>
+          </section>
+
+          <section id="autofill" class="doc-section">
+            <h2>Use a login on a website</h2>
+            <p>
+              EPV offers user-initiated suggestions for an exact secure website origin. Confirm the
+              match and choose the login in the extension. The extension does not submit the website
+              form for you.
+            </p>
+            <div class="notice">
+              <strong>Destination websites can read filled values</strong>
+              <p>
+                Once a password is entered into a site's form, that site can access it. EPV does not
+                promise confidentiality from the destination website.
+              </p>
+            </div>
+          </section>
+
+          <section id="sync" class="doc-section">
+            <h2>Connect your organization</h2>
+            <p>
+              Organization sync is disabled until an administrator configures the API and extension
+              with the same OIDC issuer and audience, allows the extension origin, and provisions
+              your membership. The extension's <strong>Connect organization</strong> control stays
+              unavailable until it is configured.
+            </p>
+            <p>
+              After sign-in, select your organization and choose <strong>Sync now</strong>. Local
+              vault creation and unlock continue to work without this connection.
+            </p>
+            <a class="inline-link" href="/EPV-Help/setup-guide/#organization-sign-in"
+              >Administrator setup steps
+              <svg class="icon" aria-hidden="true">
+                <use href="/EPV-Help/assets/img/icons.svg#i-arrow-right"></use></svg
+            ></a>
+          </section>
+
+          <nav class="doc-next" aria-label="Related guides">
+            <a href="/EPV-Help/extension-download/"><small>Next</small>Get the extension</a>
+            <a href="/EPV-Help/setup-guide/"><small>For administrators</small>Self-host EPV</a>
+          </nav>
+        </article>
+      </div>
     </main>
 
     <footer class="site-footer">
-      <a class="footer-brand" href="/EPV-Help/">EPV / HELP</a>
-      <p>Documentation for the current local development build.</p>
+      <div class="wrap footer-inner">
+        <div class="footer-brand">
+          <a class="wordmark" href="/EPV-Help/" aria-label="Enterprise Personal Vault home">
+            <span class="wordmark-mark" aria-hidden="true">EPV</span>
+            <span>Enterprise Personal Vault</span>
+          </a>
+          <p>
+            Built by KasunRocz Softwares. These pages describe the current development build.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h2>Guides</h2>
+          <ul>
+            <li><a href="/EPV-Help/user-guide/">User guide</a></li>
+            <li><a href="/EPV-Help/setup-guide/">Setup guide</a></li>
+            <li><a href="/EPV-Help/extension-download/">Extension download</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h2>More</h2>
+          <ul>
+            <li><a href="/EPV-Help/#how">How it works</a></li>
+            <li><a href="/EPV-Help/#status">Project status</a></li>
+            <li><a href="https://kasunrocz-softwares.github.io/">All KasunRocz projects</a></li>
+          </ul>
+        </div>
+      </div>
     </footer>
   </body>
 </html>
