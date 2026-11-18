@@ -6,57 +6,42 @@
 */
 
 :root {
-  color-scheme: light dark;
-  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  color-scheme: dark;
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Unbounded', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
 
-  --bg: #f3f6f5;
-  --bg-raised: #ffffff;
-  --bg-sunk: #e8eeec;
-  --line: #d6dfdc;
-  --line-strong: #b7c5c0;
-  --ink: #0f1719;
-  --muted: #485855;
-  --quiet: #60706b;
-  --accent: #8fe3bd;
-  --accent-ink: #0b6a48;
-  --accent-soft: color-mix(in oklab, var(--accent) 22%, var(--bg-raised));
-  --on-accent: #07241a;
-  --caution: #7d5300;
-  --caution-soft: #fbf1dc;
-  --code-bg: #0f1517;
-  --code-ink: #dfe9e5;
-  --code-line: #253033;
-  --shadow: 0 1px 2px rgb(15 40 32 / 0.06), 0 18px 48px -18px rgb(15 40 32 / 0.22);
-  --glow: rgb(70 190 140 / 0.22);
-  --back-opacity: 0.94;
+  /* KasunRocz Softwares family, violet world */
+  --bg: #04050a;
+  --bg-raised: rgba(12, 16, 28, 0.58);
+  --bg-solid: #0c111d;
+  --bg-sunk: rgba(255, 255, 255, 0.035);
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --ink: #eef1fb;
+  --muted: #aab2c8;
+  --quiet: #8089a3;
+  --accent: #b197fc;
+  --accent-rgb: 177, 151, 252;
+  --accent-ink: #cbbaff;
+  --accent-soft: rgba(177, 151, 252, 0.1);
+  --on-accent: #12082b;
+  --caution: #ffb547;
+  --caution-soft: rgba(255, 181, 71, 0.08);
+  --code-bg: #070a10;
+  --code-ink: #dfe4f5;
+  --code-line: rgba(255, 255, 255, 0.1);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 40px 90px -40px rgb(0 0 0 / 0.9);
+  --glow: rgba(177, 151, 252, 0.16);
+  --back-opacity: 0.62;
 
-  --r-control: 10px;
-  --r-panel: 18px;
+  --r-control: 999px;
+  --r-box: 14px;
+  --r-panel: 22px;
   --wrap: min(1200px, calc(100% - 40px));
   --reading: 70ch;
-  --header-h: 64px;
+  --header-h: 72px;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d1114;
-    --bg-raised: #141a1d;
-    --bg-sunk: #0a0e10;
-    --line: #232c30;
-    --line-strong: #34413f;
-    --ink: #edf3f0;
-    --muted: #a8b6b2;
-    --quiet: #82918d;
-    --accent-ink: #8fe3bd;
-    --accent-soft: color-mix(in oklab, var(--accent) 12%, var(--bg-raised));
-    --caution: #ebcd95;
-    --caution-soft: #231d12;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 24px 60px -20px rgb(0 0 0 / 0.65);
-    --glow: rgb(80 210 155 / 0.16);
-    --back-opacity: 0.62;
-  }
 }
 
 *,
@@ -1565,4 +1550,167 @@ details .code-block {
 .download-card p {
   color: var(--quiet);
   font-size: 14px;
+}
+
+/* ==========================================================================
+   KasunRocz Softwares family layer: fonts, glass, pill nav, labels.
+   ========================================================================== */
+body {
+  background:
+    radial-gradient(70% 45% at 85% 0%, rgba(var(--accent-rgb), 0.11), transparent 70%),
+    radial-gradient(50% 35% at 0% 45%, rgba(92, 200, 255, 0.05), transparent 70%),
+    var(--bg);
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+main, .site-footer { position: relative; z-index: 1; }
+
+h1, h2, h3,
+.path strong,
+.wordmark-text,
+.doc-next a { font-family: var(--font-display); font-weight: 500; }
+.hero h1 { font-weight: 500; letter-spacing: -0.045em; }
+.section-head h2, .admin-copy h2 { letter-spacing: -0.035em; }
+
+/* Boxes keep a softer radius where pills would look wrong */
+.code-block, .service-list, details, .notice, .doc-next a, .path-icon { border-radius: var(--r-box); }
+code { border-radius: 6px; }
+.copy-button { border-radius: 8px; }
+
+/* Buttons */
+.button { min-height: 50px; padding: 0 22px; font-weight: 700; }
+.button-primary {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 12px 40px -14px rgba(var(--accent-rgb), 0.9);
+}
+.button-primary:hover {
+  background: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 18px 50px -12px rgba(var(--accent-rgb), 1);
+}
+.button-ghost { background: rgba(255, 255, 255, 0.04); border-color: var(--line-strong); }
+.button-ghost:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.3); }
+
+/* Header: floating glass pill */
+.site-header {
+  top: 14px;
+  border-bottom: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding-inline: 16px;
+}
+.header-inner {
+  width: min(1200px, 100%);
+  height: 58px;
+  padding: 0 8px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(8, 11, 22, 0.6);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+.wordmark-mark {
+  border-radius: 10px;
+  border-color: rgba(var(--accent-rgb), 0.5);
+  background: linear-gradient(140deg, #d9cbff, var(--accent) 55%, #8d72f5);
+  color: var(--on-accent);
+  box-shadow: 0 0 18px -2px rgba(var(--accent-rgb), 0.7);
+}
+.wordmark-text { font-size: 15px; letter-spacing: -0.01em; }
+.primary-nav a:not(.button) {
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.primary-nav a:not(.button):hover { background: rgba(255, 255, 255, 0.06); }
+.primary-nav a.org { color: var(--quiet); }
+.primary-nav a.org::before { content: '\2190  '; }
+.nav-toggle { border-radius: 50%; }
+
+/* Labels: mono, uppercase, with the family's // prefix */
+.eyebrow {
+  font: 500 12px/1.2 var(--font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+.eyebrow::before { content: '// '; }
+.flow-where, .page-index-title, .footer-col h2, .doc-next small, .code-head {
+  font-family: var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 11.5px;
+}
+
+/* Hero: 3D crystal behind the screenshots */
+.hero .kr-planet {
+  position: absolute;
+  top: -6%;
+  right: -8%;
+  width: 62%;
+  height: 112%;
+  opacity: 0;
+  transition: opacity 1.6s var(--ease);
+  pointer-events: none;
+}
+.hero .kr-planet.is-ready { opacity: 0.85; }
+.hero-inner { z-index: 1; }
+.device { border-color: var(--line-strong); box-shadow: var(--shadow), 0 0 80px -24px rgba(var(--accent-rgb), 0.5); }
+
+/* Glass panels */
+.tile, .status-grid, .doc-next a, details, .service-list, .admin-figure .frame {
+  background: var(--bg-raised);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+.admin-figure .frame { background: var(--bg-solid); }
+.tile { transition: border-color 0.3s var(--ease), transform 0.5s var(--ease); }
+.tile:hover { border-color: rgba(var(--accent-rgb), 0.4); }
+.tile-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+}
+.tile-icon .icon { width: 21px; height: 21px; }
+.tile-fill { background: linear-gradient(150deg, rgba(var(--accent-rgb), 0.16), transparent 60%), var(--bg-raised); }
+.tile-recovery {
+  background:
+    repeating-linear-gradient(135deg, transparent 0 14px, rgba(255, 255, 255, 0.03) 14px 15px),
+    var(--bg-raised);
+}
+.flow-node { background: var(--bg-solid); border-color: rgba(var(--accent-rgb), 0.45); box-shadow: 0 0 24px -6px rgba(var(--accent-rgb), 0.6); }
+.admin { background: rgba(10, 14, 26, 0.55); }
+.path { border-radius: 16px; padding-inline: 16px; }
+.path:hover { background: var(--bg-raised); }
+.status-col li { background: linear-gradient(var(--accent), var(--accent)) 0 0.72em / 8px 1px no-repeat; }
+.status-col.is-pending li { background: linear-gradient(var(--caution), var(--caution)) 0 0.72em / 8px 1px no-repeat; }
+
+/* Mobile menu: glass dropdown under the pill */
+@media (max-width: 860px) {
+  .primary-nav {
+    top: calc(100% + 10px);
+    left: 16px;
+    right: 16px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: rgba(8, 11, 22, 0.94);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+  }
+  .hero .kr-planet { width: 120%; height: 60%; top: 40%; right: -10%; }
+  .hero .kr-planet.is-ready { opacity: 0.5; }
 }
