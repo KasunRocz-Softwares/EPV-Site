@@ -1,0 +1,88 @@
+# Keeps extension-download/ pointing at the newest EPV release.
+# When a release is published here (not a pre-release), this finds its
+# epv-<version>-extension-chrome.zip, computes the SHA-256, updates the download page
+# (link, button, size, checksum, file names) and redeploys the site.
+# Run it by hand from the Actions tab to re-apply a specific tag.
+name: Update download page
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to show on the download page (blank = latest release)
+        required: false
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: update-download-page
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Find the extension ZIP in the release
+        id: rel
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_INPUT: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          tag="$TAG_INPUT"
+          if [ -z "$tag" ]; then tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName); fi
+          echo "Release: $tag"
+          # Assets are often uploaded just after a release is published: wait up to 5 minutes.
+          for i in $(seq 1 30); do
+            file=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets \
+              --jq '[.assets[].name | select(test("^epv-.*-extension-chrome\\.zip$"))][0] // ""')
+            [ -n "$file" ] && break
+            echo "No extension ZIP attached yet (try $i), waiting..."
+            sleep 10
+          done
+          [ -n "$file" ] || { echo "::error::Release $tag has no epv-*-extension-chrome.zip asset."; exit 1; }
+          mkdir -p /tmp/rel
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$file" --dir /tmp/rel --clobber
+          sha=$(sha256sum "/tmp/rel/$file" | cut -d' ' -f1)
+          bytes=$(stat -c %s "/tmp/rel/$file")
+          # Cross-check against the release's SHA256SUMS when it has one.
+          if gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir /tmp/rel --clobber 2>/dev/null; then
+            listed=$(grep -E "[ *]$file\$" /tmp/rel/SHA256SUMS | cut -d' ' -f1 || true)
+            if [ -n "$listed" ] && [ "$listed" != "$sha" ]; then
+              echo "::error::SHA256SUMS lists $listed for $file, but the file hashes to $sha."
+              exit 1
+            fi
+          fi
+          echo "$file  $bytes bytes  sha256 $sha"
+          { echo "tag=$tag"; echo "file=$file"; echo "bytes=$bytes"; echo "sha=$sha"; } >> "$GITHUB_OUTPUT"
+
+      - name: Update the page
+        run: |
+          python3 scripts/update-download-page.py --tag "${{ steps.rel.outputs.tag }}" \
+            --file "${{ steps.rel.outputs.file }}" --bytes "${{ steps.rel.outputs.bytes }}" \
+            --sha256 "${{ steps.rel.outputs.sha }}"
+          git diff --stat
+
+      - name: Commit and redeploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.rel.outputs.tag }}
+        run: |
+          if git diff --quiet; then
+            echo "The download page already shows $TAG."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Download page: EPV ${TAG#v}"
+          git push origin HEAD:main
+          # Pushes made with the workflow token don't start a Pages build by themselves.
+          gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" --jq .status || echo "Could not request a Pages build; it will run on the next push."
