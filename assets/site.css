@@ -1710,3 +1710,14 @@ code { border-radius: 6px; }
   }
   .hero .kr-planet.is-ready { opacity: .42; }
 }
+
+/* Keep the pill nav on one line in mid-width windows (about 860 to 1180px) */
+.primary-nav a:not(.button) { white-space: nowrap; }
+@media (max-width: 1180px) and (min-width: 861px) {
+  .primary-nav a:not(.button) { padding: 8px 8px; letter-spacing: 0.08em; font-size: 11px; }
+  .primary-nav .button { margin-left: 4px; }
+  .wordmark-text { font-size: 14px; }
+}
+@media (max-width: 1020px) and (min-width: 861px) {
+  .wordmark-text { display: none; }
+}
